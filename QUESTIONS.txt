@@ -1,0 +1,33 @@
+/*
+Damien TROLARD
+IMAC 1 
+5/02/2018
+*/
+
+
+__________________________
+EX 1
+
+
+API : Package de fonction pour facilité le travail des dev (ne pas recreer 12 fois la meme choe)
+
+OPEN GL : Graphic library
+
+SDL : Biblio logiciels libres
+
+OPEN SOURCE : Libre de droit 
+
+__________________________
+EX 2
+
+1- Appelle les biblio necessaires 
+
+2-
+
+3-
+
+4- Une fenetre s'affiche et détecte les clic & touches
+
+5- Créé une fenetre 
+SDL_Surface *SDL_SetVideoMode(int width, int height, int bpp, Uint32 flags);
+Return NULL if fail
