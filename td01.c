@@ -3,18 +3,15 @@
 #include <GL/glu.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "param.h"
 #include "point.h"
-
-/* Dimensions de la fenêtre */
-static unsigned int WINDOW_WIDTH = 400;
-static unsigned int WINDOW_HEIGHT = 400;
+#include "tas.h"
 
 /* Nombre de bits par pixel de la fenêtre */
 static const unsigned int BIT_PER_PIXEL = 32;
 
 /* Nombre minimal de millisecondes separant le rendu de deux images */
 static const Uint32 FRAMERATE_MILLISECONDS = 1000 / 60;
-
 
 
 void projection(){
@@ -25,23 +22,67 @@ void projection(){
     gluOrtho2D(-1.,1.,-1.,1.);
 }
 
-void tracePoint(Point2D *p, float weight){
-    glPointSize(weight);
-    glBegin(GL_POINTS);
-    glVertex2f(-1 + 2. * p->x / WINDOW_WIDTH, -(-1 + 2. * p->y / WINDOW_HEIGHT));
-    glEnd();
+/*
+*   Retourne la valeur binaire de i
+*/
+int int_to_binary(int i) {
+    if (i == 0) return 0;
+    return (i % 2) + 10 * int_to_binary(i / 2);
 }
 
-void traceLigne(Point2D *a, Point2D *b, int weight){
-    glLineWidth(weight);
-    glBegin(GL_LINES);
-    glVertex2f(-1 + 2. * a->x / WINDOW_WIDTH, -(-1 + 2. *! a->y / WINDOW_HEIGHT));
-    glVertex2f(-1 + 2. * b->x / WINDOW_WIDTH, -(-1 + 2. * b->y / WINDOW_HEIGHT));
-    glEnd();
+/*
+*   Affiche la palette de couleur
+*   ATTENTION : EFFACE L AFFICHAGE COURANT
+*/
+void affichePannelCouleur(){
+    int nbColor = 8;  
+    int i;
+    for(i = 0; i<nbColor; i++){
+        char r = int_to_binary(i)/100;
+        char v = (int_to_binary(i)/10)%10;
+        char b = int_to_binary(i)%10;
+
+        glColor3f(r,v,b);
+        Point2D *topLeft = creer_point2D((WINDOW_WIDTH/nbColor)*i,0,r,v,b);
+        Point2D *topRight = creer_point2D((WINDOW_WIDTH/nbColor)*(i+1),0,r,v,b);
+        Point2D *bottomRight = creer_point2D((WINDOW_WIDTH/nbColor)*(i+1),WINDOW_HEIGHT,r,v,b);
+        Point2D *bottomLeft = creer_point2D((WINDOW_WIDTH/nbColor)*i,WINDOW_HEIGHT,r,v,b);
+        traceRectangle(topLeft,topRight,bottomRight,bottomLeft,3.);
+        free(topLeft);
+        free(topRight);
+        free(bottomRight);
+        free(bottomLeft);
+    }  
 }
 
-int main(int argc, char** argv) {
+/*
+*   Ajoute au tas le point x,y
+*   Si il y a nbPoint points dans le tas alors affiche la forme   
+*/
+void afficheForme(Point2D *p, int nbPoint){
+    if(getNbElemTas() < nbPoint )
+        ajouterTas(p);
+    if(getNbElemTas() == nbPoint ){
+        switch(nbPoint){
+            case 1:
+                tracePoint(getElemTas(0), 3.);
+                break;
+            case 2:
+                traceLigne(getElemTas(0), getElemTas(1), 3.);
+                break;
+            case 3:
+                traceTriangle(getElemTas(0), getElemTas(1), getElemTas(2), 3.);
+                break;
+            case 4:
+                traceRectangle(getElemTas(0), getElemTas(1), getElemTas(2), getElemTas(3),3.);
+                break;
+        }
+        resetTas();
+    }
+}
 
+
+int main(int argc, char** argv){
     /* Initialisation de la SDL */
     if(-1 == SDL_Init(SDL_INIT_VIDEO)) {
         fprintf(stderr, "Impossible d'initialiser la SDL. Fin du programme.\n");
@@ -55,19 +96,19 @@ int main(int argc, char** argv) {
     }
     
     /* Titre de la fenêtre */
-    SDL_WM_SetCaption("LOL.", NULL);
+    SDL_WM_SetCaption("IMAPAINT", NULL);
     /* Boucle d'affichage */
     int loop = 1;
     float r, v, b;
     r=v=b=0.0;
-    char selection = 'p';
-    Point2D tas[5] = {0,0,0,0,0};
-
+    char selectedChar = 'p';
+    int selectedR=1,selectedV=1,selectedB=1;
+    char *precmod[64],*mode = "normal";
     while(loop) {
 
         /* Récupération du temps au début de la boucle */
         Uint32 startTime = SDL_GetTicks();
-                
+
         /* Placer ici le code de dessin */
 
 
@@ -79,55 +120,80 @@ int main(int argc, char** argv) {
         /* Boucle traitant les evenements */
         SDL_Event e;
         while(SDL_PollEvent(&e)) {
-
             /* L'utilisateur ferme la fenêtre : */
             if(e.type == SDL_QUIT) {
                 loop = 0;
                 break;
             }
-            
             /* Quelques exemples de traitement d'evenements : */
             switch(e.type) {
                 /* Clic souris */
-                case SDL_MOUSEMOTION:
-                    r = e.motion.x/(WINDOW_WIDTH*1.);
-                    v = e.motion.y/(WINDOW_WIDTH*1.);           
-                    break;
                 case SDL_MOUSEBUTTONUP:
-                    switch(selection){
-                        case 'p':
-                            tracePoint(creer_point2D(e.button.x,e.button.y), 3.0); 
-                            break;
+                    if(strcmp("palette",mode) == 0){
+                        //Si en mode palette
+                        int iCouleurPalette = e.button.x/(WINDOW_WIDTH/8);
+                        selectedR = int_to_binary(iCouleurPalette)/100;
+                        selectedV = (int_to_binary(iCouleurPalette)/10)%10;
+                        selectedB = int_to_binary(iCouleurPalette)%10;
+                    }else{
+                        //Si en mode dessin
+                        switch(selectedChar){
+                            case 'p':
+                                //POINT
+                                afficheForme(creer_point2D(e.button.x,e.button.y,selectedR,selectedV,selectedB),1);
+                                break;
+                            case 'l':
+                                //LIGNE
+                                afficheForme(creer_point2D(e.button.x,e.button.y,selectedR,selectedV,selectedB),2);
+                                break;
+                            case 't':
+                                //TRIANGLE
+                                afficheForme(creer_point2D(e.button.x,e.button.y,selectedR,selectedV,selectedB),3);
+                                break;
+                            case 'r':
+                                //RECTANGLE
+                                afficheForme(creer_point2D(e.button.x,e.button.y,selectedR,selectedV,selectedB),4);
+                        }
                     }
                     break;
-                /* Touche clavier */
                 case SDL_KEYDOWN:
                     switch(e.key.keysym.sym){
                         case 'q':
+                            //QUIT
                             SDL_Quit();
                             return EXIT_SUCCESS;
                             break;
-                        case 'l':
-
-                            traceLigne(creer_point2D(100,100),creer_point2D(100,200),3.0);
+                        case ' ':
+                            //MODE PALETTE
+                            mode = "palette";
                             break;
                         default : 
-                            selection = e.key.keysym.sym; 
+                            //ON ENREGISTRE LE CARACTERE
+                            selectedChar = e.key.keysym.sym; 
                             break;
                     }
+                    break;
+                case SDL_KEYUP:
+                    if(e.key.keysym.sym == ' ')
+                        mode = "normal";
                     break;
                 case SDL_VIDEORESIZE:
                     WINDOW_WIDTH = e.resize.w;
                     WINDOW_HEIGHT = e.resize.h;
                     projection();
                     break;
-                default:
-                    break;
-            }
-        }
-        // glClearColor(r,v,b,1);
-        // glClear(GL_COLOR_BUFFER_BIT);
 
+            }
+
+
+            if(strcmp("palette",mode) == 0){
+                affichePannelCouleur();
+            }else{
+               if(strcmp(precmod,mode)!=0)
+                glClear(GL_COLOR_BUFFER_BIT);
+            }
+            strcpy(precmod,mode);
+        }
         /* Calcul du temps écoulé */
         Uint32 elapsedTime = SDL_GetTicks() - startTime;
 

@@ -1,7 +1,7 @@
 CC       =  gcc
 CFLAGS   = -Wall -O2 -g
 LIB      = -lSDL -lGLU -lGL -lm 
-INCLUDES = point.c
+INCLUDES = point.c tas.c
 
 OBJ      = td01.o 
 RM       = rm -f
