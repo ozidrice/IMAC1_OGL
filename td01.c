@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "param.h"
 #include "point.h"
-#include "tas.h"
+#include "sauvegarde.h"
 
 /* Nombre de bits par pixel de la fenêtre */
 static const unsigned int BIT_PER_PIXEL = 32;
@@ -55,31 +55,6 @@ void affichePannelCouleur(){
     }  
 }
 
-/*
-*   Ajoute au tas le point x,y
-*   Si il y a nbPoint points dans le tas alors affiche la forme   
-*/
-void afficheForme(Point2D *p, int nbPoint){
-    if(getNbElemTas() < nbPoint )
-        ajouterTas(p);
-    if(getNbElemTas() == nbPoint ){
-        switch(nbPoint){
-            case 1:
-                tracePoint(getElemTas(0), 3.);
-                break;
-            case 2:
-                traceLigne(getElemTas(0), getElemTas(1), 3.);
-                break;
-            case 3:
-                traceTriangle(getElemTas(0), getElemTas(1), getElemTas(2), 3.);
-                break;
-            case 4:
-                traceRectangle(getElemTas(0), getElemTas(1), getElemTas(2), getElemTas(3),3.);
-                break;
-        }
-        resetTas();
-    }
-}
 
 
 int main(int argc, char** argv){
@@ -97,20 +72,16 @@ int main(int argc, char** argv){
     
     /* Titre de la fenêtre */
     SDL_WM_SetCaption("IMAPAINT", NULL);
+
+
     /* Boucle d'affichage */
     int loop = 1;
-    float r, v, b;
-    r=v=b=0.0;
-    char selectedChar = 'p';
-    int selectedR=1,selectedV=1,selectedB=1;
-    char *precmod[64],*mode = "normal";
+    char selectedChar = 'p'; //Set point par défaut
+    float selectedR=1,selectedV=1,selectedB=1; //Blanc par défaut
+    char precmod[10] = "dessin", *mode = "dessin"; //mode dessin par défaut
     while(loop) {
-
         /* Récupération du temps au début de la boucle */
         Uint32 startTime = SDL_GetTicks();
-
-        /* Placer ici le code de dessin */
-
 
 
         /* Echange du front et du back buffer : mise à jour de la fenêtre */
@@ -137,23 +108,25 @@ int main(int argc, char** argv){
                         selectedB = int_to_binary(iCouleurPalette)%10;
                     }else{
                         //Si en mode dessin
+                        int nbPointNecessaires = 0;
                         switch(selectedChar){
                             case 'p':
                                 //POINT
-                                afficheForme(creer_point2D(e.button.x,e.button.y,selectedR,selectedV,selectedB),1);
+                                nbPointNecessaires = 1;
                                 break;
                             case 'l':
                                 //LIGNE
-                                afficheForme(creer_point2D(e.button.x,e.button.y,selectedR,selectedV,selectedB),2);
+                                nbPointNecessaires = 2;
                                 break;
                             case 't':
                                 //TRIANGLE
-                                afficheForme(creer_point2D(e.button.x,e.button.y,selectedR,selectedV,selectedB),3);
+                                nbPointNecessaires = 3;
                                 break;
                             case 'r':
                                 //RECTANGLE
-                                afficheForme(creer_point2D(e.button.x,e.button.y,selectedR,selectedV,selectedB),4);
+                                nbPointNecessaires = 4;
                         }
+                        afficheForme(creer_point2D(e.button.x,e.button.y,selectedR,selectedV,selectedB),nbPointNecessaires,1);
                     }
                     break;
                 case SDL_KEYDOWN:
@@ -175,7 +148,7 @@ int main(int argc, char** argv){
                     break;
                 case SDL_KEYUP:
                     if(e.key.keysym.sym == ' ')
-                        mode = "normal";
+                        mode = "dessin";
                     break;
                 case SDL_VIDEORESIZE:
                     WINDOW_WIDTH = e.resize.w;
@@ -187,10 +160,14 @@ int main(int argc, char** argv){
 
 
             if(strcmp("palette",mode) == 0){
+                //Si palette
                 affichePannelCouleur();
             }else{
-               if(strcmp(precmod,mode)!=0)
-                glClear(GL_COLOR_BUFFER_BIT);
+                if(strcmp(precmod,mode)!=0){
+                    //Si on vient de repasser en dessin on efface tout
+                    glClear(GL_COLOR_BUFFER_BIT);
+                    restaurePoint();
+                }
             }
             strcpy(precmod,mode);
         }
