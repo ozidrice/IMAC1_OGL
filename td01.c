@@ -6,6 +6,7 @@
 #include "param.h"
 #include "point.h"
 #include "sauvegarde.h"
+#include "tas.h"
 
 /* Nombre de bits par pixel de la fenêtre */
 static const unsigned int BIT_PER_PIXEL = 32;
@@ -55,6 +56,22 @@ void affichePannelCouleur(){
     }  
 }
 
+/*
+*   Free tous les points
+*/
+void freePoints(){
+    freeSauvegarde();
+    freeTas();
+}
+
+/*
+*   Free tous les points et SDL
+*/
+int freeAll(){
+    freePoints();
+    SDL_Quit();
+    return EXIT_SUCCESS;
+}
 
 
 int main(int argc, char** argv){
@@ -133,12 +150,15 @@ int main(int argc, char** argv){
                     switch(e.key.keysym.sym){
                         case 'q':
                             //QUIT
-                            SDL_Quit();
-                            return EXIT_SUCCESS;
+                            return freeAll();
                             break;
                         case ' ':
                             //MODE PALETTE
                             mode = "palette";
+                            break;
+                        case 'c':
+                            freePoints();
+                            glClear(GL_COLOR_BUFFER_BIT);
                             break;
                         default : 
                             //ON ENREGISTRE LE CARACTERE
@@ -147,6 +167,7 @@ int main(int argc, char** argv){
                     }
                     break;
                 case SDL_KEYUP:
+                    //Si espace relaché on repasse en dessin
                     if(e.key.keysym.sym == ' ')
                         mode = "dessin";
                     break;
@@ -158,7 +179,7 @@ int main(int argc, char** argv){
 
             }
 
-
+            //GESTION DU MODE
             if(strcmp("palette",mode) == 0){
                 //Si palette
                 affichePannelCouleur();
@@ -180,8 +201,5 @@ int main(int argc, char** argv){
         }
     }
 
-    /* Liberation des ressources associées à la SDL */ 
-    SDL_Quit();
-
-    return EXIT_SUCCESS;
+   return freeAll();
 }

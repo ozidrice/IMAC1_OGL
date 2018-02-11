@@ -49,3 +49,13 @@ int getNbElemTas(){
 	return posTas;
 }
 
+
+void freeTas(){
+	for (int i = 0; i <= posTas; ++i){
+		if(tasPoint[i] != NULL){
+			free(tasPoint[i]);
+			tasPoint[i] = NULL;
+		}
+	}
+	posTas = 0;
+}

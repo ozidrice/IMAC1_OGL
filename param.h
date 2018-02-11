@@ -5,8 +5,4 @@
 static unsigned int WINDOW_WIDTH = 400;
 static unsigned int WINDOW_HEIGHT = 400;
 
-
-
-
-
 #endif

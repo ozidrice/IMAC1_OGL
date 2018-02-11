@@ -35,7 +35,6 @@ void printPoint2D(Point2D *p){
 *   R <= V <= B <= 1
 *   R >= V >= B >= 0
 *   Utilise l'épaisseur weight
-*   free les points
 */
 void tracePoint(Point2D *p, float weight){
     glColor3f(p->r,p->v,p->b);
@@ -51,7 +50,6 @@ void tracePoint(Point2D *p, float weight){
 *   R <= V <= B <= 1
 *   R >= V >= B >= 0
 *   Utilise l'épaisseur weight
-*   free les points
 */
 void traceLigne(Point2D *a, Point2D *b, int weight){
     glColor3f(a->r,a->v,a->b);
@@ -68,7 +66,6 @@ void traceLigne(Point2D *a, Point2D *b, int weight){
 *   R <= V <= B <= 1
 *   R >= V >= B >= 0
 *   Utilise l'épaisseur weight
-*   free les points
 */
 void traceTriangle(Point2D *a, Point2D *b, Point2D *c, int weight){
     glColor3f(a->r,a->v,a->b);
@@ -91,7 +88,6 @@ void traceTriangle(Point2D *a, Point2D *b, Point2D *c, int weight){
 *   R <= V <= B <= 1
 *   R >= V >= B >= 0
 *   Utilise l'épaisseur weight
-*   free les points
 */
 void traceRectangle(Point2D *a, Point2D *b, Point2D *c, Point2D *d,int weight){
     glColor3f(a->r,a->v,a->b);
@@ -106,7 +102,9 @@ void traceRectangle(Point2D *a, Point2D *b, Point2D *c, Point2D *d,int weight){
 
 /*
 *   Ajoute au tas le point p
+*   nbPoint = Nombre de points necessaire à la forme
 *   Si il y a nbPoint points dans le tas alors affiche la forme   
+*   si savePoint = 1 alors sauvegarde les points lors de l'affichage de la forme 
 */
 void afficheForme(Point2D *p, int nbPoint, int savePoint){
     if(getNbElemTas() < nbPoint )

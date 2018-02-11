@@ -22,7 +22,7 @@ EX 2
 
 1- Appelle les biblio necessaires 
 
-2-
+2- 
 
 3-
 
@@ -31,3 +31,8 @@ EX 2
 5- Créé une fenetre 
 SDL_Surface *SDL_SetVideoMode(int width, int height, int bpp, Uint32 flags);
 Return NULL if fail
+
+EX 5
+
+3- Parce que GL a son point (0,0) en haut à gauche de la fenetre et fonctionne en pixel 
+tandis que SDL a son (0,0) au centre et |x| = |y| <= 1

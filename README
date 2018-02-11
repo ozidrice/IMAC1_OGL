@@ -1,0 +1,23 @@
+/*
+*	DAMIEN TROLARD // OZIDRICE
+*	11/02/2018 -- IMAC1 -- Synthèse d'Image
+*/
+
+Execution : 
+	make && ./td01
+
+
+Fonctionnement : 
+	- Par défault dessine un point blanc au clic de la souris 
+	- Maintenir espace puis cliquer pour sélectionner une couleur  
+	- p = Point
+	- l = Ligne
+	- t = Triangle 
+	- r = Rectangle
+	- c = Tout effacer
+
+
+
+Bug relevé : 
+	- Segfault quand plus de 4 formes à sauvegarder
+		( voir restaurePoint() et freeSauvegarde() dans sauvegarde.c )
